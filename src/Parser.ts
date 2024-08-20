@@ -178,12 +178,12 @@ export interface Handler {
      */
     onattribute(
         name: string,
-        value: string,
+        value: string | null,
         quote?: string | undefined | null,
     ): void;
     onopentag(
         name: string,
-        attribs: { [s: string]: string },
+        attribs: { [s: string]: string | null },
         isImplied: boolean,
     ): void;
     ontext(data: string): void;
@@ -209,8 +209,8 @@ export class Parser implements Callbacks {
 
     private tagname = "";
     private attribname = "";
-    private attribvalue = "";
-    private attribs: null | { [key: string]: string } = null;
+    private attribvalue: string | null = null;
+    private attribs: null | { [key: string]: string | null } = null;
     private readonly stack: string[] = [];
     /** Determines whether self-closing tags are recognized. */
     private readonly foreignContext: boolean[];
@@ -416,12 +416,12 @@ export class Parser implements Callbacks {
 
     /** @internal */
     onattribdata(start: number, endIndex: number): void {
-        this.attribvalue += this.getSlice(start, endIndex);
+        this.attribvalue = (this.attribvalue ?? '') + this.getSlice(start, endIndex);
     }
 
     /** @internal */
     onattribentity(cp: number): void {
-        this.attribvalue += fromCodePoint(cp);
+        this.attribvalue = (this.attribvalue ?? '') + fromCodePoint(cp);
     }
 
     /** @internal */
@@ -446,7 +446,7 @@ export class Parser implements Callbacks {
         ) {
             this.attribs[this.attribname] = this.attribvalue;
         }
-        this.attribvalue = "";
+        this.attribvalue = null;
     }
 
     private getInstructionName(value: string) {
